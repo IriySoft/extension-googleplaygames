@@ -8,48 +8,74 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.app.Activity;
+
 import org.haxe.extension.Extension;
 import org.haxe.lime.HaxeObject;
+
 import android.os.AsyncTask;
 import java.io.IOException;
 import java.io.FileOutputStream;
 import java.io.File;
 import java.security.MessageDigest;
 
-import com.google.android.gms.games.Games;
-import com.google.android.gms.games.Players;
-import com.google.android.gms.games.Player;
-import com.google.android.gms.games.PlayerBuffer;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.images.ImageManager;
+import com.google.android.gms.tasks.*;
+import android.content.Intent;
 
-import com.google.android.gms.games.leaderboard.Leaderboards;
-import com.google.android.gms.games.leaderboard.LeaderboardVariant;
-import com.google.android.gms.games.leaderboard.LeaderboardScore;
-import com.google.android.gms.games.GamesStatusCodes;
-import com.google.android.gms.games.achievement.Achievements;
-import com.google.android.gms.games.achievement.Achievement;
-import com.google.android.gms.games.snapshot.Snapshot;
-import com.google.android.gms.games.snapshot.Snapshots;
-import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
-import com.google.android.gms.games.snapshot.SnapshotMetadataChange.Builder;
+import com.google.android.gms.games.PlayGamesSdk;
+import com.google.android.gms.games.PlayGames;
+import com.google.android.gms.games.GamesSignInClient;
 
-public class GooglePlayGames extends Extension implements GameHelper.GameHelperListener {
+//import com.google.android.gms.games.Games;
+//import com.google.android.gms.games.Players;
+//import com.google.android.gms.games.Player;
+//import com.google.android.gms.games.PlayerBuffer;
+//import com.google.android.gms.common.api.GoogleApiClient;
+//import com.google.android.gms.common.ConnectionResult;
+//import com.google.android.gms.common.api.ResultCallback;
+//import com.google.android.gms.common.images.ImageManager;
+
+//import com.google.android.gms.games.leaderboard.Leaderboards;
+//import com.google.android.gms.games.leaderboard.LeaderboardVariant;
+//import com.google.android.gms.games.leaderboard.LeaderboardScore;
+//import com.google.android.gms.games.GamesStatusCodes;
+//import com.google.android.gms.games.achievement.Achievements;
+//import com.google.android.gms.games.achievement.Achievement;
+//import com.google.android.gms.games.snapshot.Snapshot;
+//import com.google.android.gms.games.snapshot.Snapshots;
+//import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
+//import com.google.android.gms.games.snapshot.SnapshotMetadataChange.Builder;
+
+public class GooglePlayGames extends Extension /*implements GameHelper.GameHelperListener*/ {
 	
-	private static GooglePlayGames instance=null;
-	private static GameHelper mHelper=null;
+	private static GooglePlayGames instance = null;
+	//private static GameHelper mHelper = null;
 	public static final String TAG = "EXTENSION-GOOGLEPLAYGAMES";
-	private static boolean userRequiresLogin=false;
+	private static boolean userRequiresLogin = false;
 	private static SecureHaxeObject callbackObject = null;
-	private static boolean enableCloudStorage=false;
+	private static boolean enableCloudStorage = false;
+
+	private static GamesSignInClient gamesSignInClient = null;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	public static void init(boolean cloudStorage, HaxeObject callbackObj){
-		if(callbackObj!=null) GooglePlayGames.callbackObject = new SecureHaxeObject(callbackObj, mainActivity, TAG);
+  /**
+   * Called when the activity is starting.
+   */
+  public void onCreate() {
+    Log.i(TAG, "Created");
+    instance = this;
+  }
+  
+
+	public static void init(boolean cloudStorage, HaxeObject callbackObj) {
+		Log.i(TAG, "Init");
+
+		if (callbackObj != null) 
+			GooglePlayGames.callbackObject = new SecureHaxeObject(callbackObj, mainActivity, TAG);
+		//Log.i(TAG, "Init 2");
+
+		/*
 		if(mHelper!=null){		
 			if(mHelper.isConnecting() || mHelper.isSignedIn()) return;
 			mHelper=null;
@@ -57,7 +83,15 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 		enableCloudStorage=cloudStorage;
 		final int maxAutoSignInAttempts = userRequiresLogin?1:0;
 		userRequiresLogin=false;
+		*/
 
+		PlayGamesSdk.initialize(Extension.mainContext);
+
+		gamesSignInClient = PlayGames.getGamesSignInClient(Extension.mainActivity);
+		//Log.i(TAG, "Init 3");
+
+
+		/*
 		mainActivity.runOnUiThread(new Runnable() {
 			public void run() {
 				try{
@@ -73,22 +107,83 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 				}
 			}
 		});
+		*/
 	}	
 
+	public static void login() {
+		if (gamesSignInClient != null) {
+			gamesSignInClient
+				.signIn()
+				.addOnCompleteListener(task -> {
+					isAuthenticated = task.getResult().isAuthenticated();
+					if (task.isSuccessful() && isAuthenticated) {
+						Log.i(TAG, "Sign in successful");
+					} else {
+						Log.i(TAG, "Sign in failed");
+					}
+				});
+		} else {
+			Log.i(TAG, "Sign in client is null");
+		}
+  }	
+
+	public static boolean isLoggedIn() {return isAuthenticated;}
+
+	static boolean isAuthenticated = false;
+
+  private static void signInSilently() {
+    Log.i(TAG, "Silent signIn");
+    if (gamesSignInClient != null) {
+      gamesSignInClient.isAuthenticated().addOnCompleteListener(isAuthenticatedTask -> {
+        isAuthenticated =
+          (isAuthenticatedTask.isSuccessful() &&
+             isAuthenticatedTask.getResult().isAuthenticated());
+        if (isAuthenticated) {
+            Log.i(TAG, "Authenticated");
+          } else {
+            Log.i(TAG, "Not authenticated");
+          }
+      });
+    }
+  }
+
+  /**
+   * Called after {@link #onRestart}, or {@link #onPause}, for your activity 
+   * to start interacting with the user.
+   */
+  public void onResume () {
+    signInSilently();
+  }
+  
+
+
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	public static void login(){
+
+	/*
+	public static void login() {
 		Log.i(TAG, "PlayGames: Forcing Login");
-		userRequiresLogin=true;
-		mHelper=null;
-		init(enableCloudStorage,null);
-	}
+		userRequiresLogin = true;
+		// mHelper=null;
+		// init(enableCloudStorage,null);
+	}*/
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+	public static boolean setScore(String id, int score) {
+		Log.i(TAG, "PlayGames: submitScore "+id+" -> "+score);
+		try {
+			PlayGames.getLeaderboardsClient(mainActivity)
+    		.submitScore(id, score);
+		} catch (Exception e) {
+			Log.i(TAG, "PlayGames: setScore Exception");
+			Log.i(TAG, e.toString());
+			return false;
+		}
 
-	public static boolean setScore(String id, int high_score, int low_score){
+		/*
 		try {
 			long score = (((long)high_score << 32) | ((long)low_score & 0xFFFFFFFF));
 			Games.Leaderboards.submitScore(mHelper.mGoogleApiClient, id, score);
@@ -97,13 +192,15 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 			Log.i(TAG, e.toString());
 			return false;
 		}
-    	Log.i(TAG, "PlayGames: setScore complete");
-    	return true;
+		Log.i(TAG, "PlayGames: setScore complete");
+		*/
+		return true;
+
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////
-
+	/*
 	public static boolean displayScoreboard(String id){
 		try {
 			mainActivity.startActivityForResult(Games.Leaderboards.getLeaderboardIntent(mHelper.mGoogleApiClient, id), 0);
@@ -115,19 +212,29 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 			return false;
 		}
 		return true;
-	}
+	}*/
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	public static boolean displayAllScoreboards(){
+	private static final int RC_LEADERBOARD_UI = 9004;
+
+	public static boolean displayScoreboard(String leaderboardId) {
 		try {
-			mainActivity.startActivityForResult(Games.Leaderboards.getAllLeaderboardsIntent(mHelper.mGoogleApiClient), 0);
+			PlayGames.getLeaderboardsClient(mainActivity)
+      	.getLeaderboardIntent(leaderboardId)
+      	.addOnSuccessListener(new OnSuccessListener<Intent>() {
+        	@Override
+        	public void onSuccess(Intent intent) {
+          	mainActivity.startActivityForResult(intent, RC_LEADERBOARD_UI);
+        	}
+      });			
+			// mainActivity.startActivityForResult(Games.Leaderboards.getAllLeaderboardsIntent(mHelper.mGoogleApiClient), 0);
 		} catch (Exception e) {
 			// Try connecting again
-			Log.i(TAG, "PlayGames: displayAllScoreboards Exception");
+			Log.i(TAG, "PlayGames: displayScoreboard Exception");
 			Log.i(TAG, e.toString());
-			login();
+			//login();
 			return false;
 		}
 		return true;
@@ -137,32 +244,40 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public static GooglePlayGames getInstance(){
-		if(instance==null) instance=new GooglePlayGames();
+		if(instance == null) instance = new GooglePlayGames();
 		return instance;
 	}
 
+	/*
+
 	@Override
     public void onSignInFailed() {
-		callbackObject.call1("loginResultCallback",-1);
+        if (callbackObject != null)
+	  callbackObject.call1("loginResultCallback",-1);
         Log.i(TAG, "PlayGames: onSignInFailed");
     }
 
     @Override
     public void onSignInSucceeded() {
-		callbackObject.call1("loginResultCallback",1);
+		if (callbackObject != null) callbackObject.call1("loginResultCallback",1);
         Log.i(TAG, "PlayGames: onSignInSucceeded");
     }
 	
 	@Override
     public void onSignInStart() {
-		callbackObject.call1("loginResultCallback",0);
+		if (callbackObject != null) callbackObject.call1("loginResultCallback",0);
         Log.i(TAG, "PlayGames: onSignInStart");
     }
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	*/
 
-	public static boolean unlock(String id){
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	public static boolean unlock(String id) {
+		Log.i(TAG, "PlayGames: unlock " + id);
+		PlayGames.getAchievementsClient(mainActivity).unlock(id);
+		/*
 		try{
 			Games.Achievements.unlock(mHelper.mGoogleApiClient, id);
 		}catch (Exception e) {
@@ -170,12 +285,13 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 			Log.i(TAG, e.toString());
 			return false;
 		}
+		*/
 		return true;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////
-
+	/*
 	public static boolean reveal(String id){
 		try{
 			Games.Achievements.reveal(mHelper.mGoogleApiClient, id);
@@ -218,22 +334,35 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	*/
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	private static final int RC_ACHIEVEMENT_UI = 9003;
+
 	public static boolean displayAchievements(){
 		try{
-			mainActivity.startActivityForResult(Games.Achievements.getAchievementsIntent(mHelper.mGoogleApiClient), 0);
+			PlayGames.getAchievementsClient(mainActivity)
+				.getAchievementsIntent()
+				.addOnSuccessListener(
+					new OnSuccessListener<Intent>() {
+						@Override
+						public void onSuccess(Intent intent) {
+							mainActivity.startActivityForResult(intent, RC_ACHIEVEMENT_UI);
+						}
+					}
+				);			
+			//mainActivity.startActivityForResult(Games.Achievements.getAchievementsIntent(mHelper.mGoogleApiClient), 0);
 		} catch (Exception e) {
 			// Try connecting again
 			Log.i(TAG, "PlayGames: displayAchievements Exception");
 			Log.i(TAG, e.toString());
-			login();
+			//login();
 			return false;
 		}
 		return true;
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-
+  /*
 	public static String getPlayerId() {
 		try {
 			Log.i(TAG, "PlayGames: getPlayerId BEGIN");
@@ -326,7 +455,7 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 					FileOutputStream fos = new FileOutputStream(file,false);
 						bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
 						Log.i(TAG, "PlayGames: "+playerID+"'s saved in "+path);
-						callbackObject.call2("onGetPlayerImage", playerID, path);
+						if (callbackObject != null) callbackObject.call2("onGetPlayerImage", playerID, path);
 				} catch (Exception e) {
 					Log.i(TAG, "PlayGames: getPlayerImage  exception trying to save: ");
 					Log.i(TAG, e.toString());
@@ -348,7 +477,7 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 						long score = playerScore.getScore().getRawScore();
 						int high_score = (int) (score >>> 32);
 						int low_score = (int) (score & 0xFFFFFFFF);
-						callbackObject.call3("onGetScoreboard", idScoreboard, high_score, low_score);
+						if (callbackObject != null) callbackObject.call3("onGetScoreboard", idScoreboard, high_score, low_score);
 					}
 				}
 			});
@@ -360,11 +489,12 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 		}
 		return true;
 	}
-
+  */
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  /*
 	public static boolean loadInvitablePlayers(boolean clearCache) {
 		return loadAllPlayers(false, clearCache, 0);
 	}
@@ -395,7 +525,7 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 						//Log.i(TAG, String.format("Found player with id [%s] and display name [%s]", player.getPlayerId(), player.getDisplayName()));
 					}
 					Log.w(TAG, "loadAllFriends: Done! Now sending serialized friends to HAXE");
-					callbackObject.call2("onLoadPlayers",friends,getConnectedPlayers);					
+					if (callbackObject != null) callbackObject.call2("onLoadPlayers",friends,getConnectedPlayers);					
 				}
 			};
 
@@ -427,8 +557,8 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 				public void onResult(Achievements.LoadAchievementsResult loadAchievementsResult) {
 					for (Achievement ach: loadAchievementsResult.getAchievements()) {
 						if (ach.getAchievementId().equals(idAchievement)) {
-							if (ach.getState() == Achievement.STATE_UNLOCKED) callbackObject.call2("onGetAchievementStatus", idAchievement, 1);
-							else callbackObject.call2("onGetAchievementStatus", idAchievement, 0);
+							if (ach.getState() == Achievement.STATE_UNLOCKED) if (callbackObject != null) callbackObject.call2("onGetAchievementStatus", idAchievement, 1);
+							else if (callbackObject != null) callbackObject.call2("onGetAchievementStatus", idAchievement, 0);
 						}
 					}
 				}
@@ -452,7 +582,7 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 				public void onResult(Achievements.LoadAchievementsResult loadAchievementsResult) {
 					for (Achievement ach: loadAchievementsResult.getAchievements()) {
 						if (ach.getAchievementId().equals(idAchievement)) {
-							if (ach.getType() == Achievement.TYPE_INCREMENTAL) callbackObject.call2("onGetAchievementSteps", idAchievement, ach.getCurrentSteps());
+							if (ach.getType() == Achievement.TYPE_INCREMENTAL) if (callbackObject != null) callbackObject.call2("onGetAchievementSteps", idAchievement, ach.getCurrentSteps());
 						}
 					}
 				}
@@ -540,9 +670,9 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 						} catch (IOException e) {
 							Log.e(TAG, "Error while reading Snapshot.", e);
 						}
-						callbackObject.call3("onLoadSavedGameConflict", name, mSaveGameData==null?null:new String(mSaveGameData), mConfictSaveGameData==null?null:new String(mConfictSaveGameData));				
+						if (callbackObject != null) callbackObject.call3("onLoadSavedGameConflict", name, mSaveGameData==null?null:new String(mSaveGameData), mConfictSaveGameData==null?null:new String(mConfictSaveGameData));				
 					} else {
-						callbackObject.call3("onLoadSavedGameComplete", name, result.getStatus().getStatusCode(), mSaveGameData==null?null:new String(mSaveGameData));					
+						if (callbackObject != null) callbackObject.call3("onLoadSavedGameComplete", name, result.getStatus().getStatusCode(), mSaveGameData==null?null:new String(mSaveGameData));					
 					}
 
             	} catch (Exception e) {
@@ -603,5 +733,6 @@ public class GooglePlayGames extends Extension implements GameHelper.GameHelperL
 		}
 		return true;
 	}
+	*/
 
 }

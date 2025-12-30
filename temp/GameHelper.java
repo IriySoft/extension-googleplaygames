@@ -33,11 +33,11 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.Games.GamesOptions;
 import com.google.android.gms.games.GamesActivityResultCodes;
-import com.google.android.gms.games.multiplayer.Invitation;
-import com.google.android.gms.games.multiplayer.Multiplayer;
-import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatch;
-import com.google.android.gms.plus.Plus;
-import com.google.android.gms.drive.Drive;
+//import com.google.android.gms.games.multiplayer.Invitation;
+//import com.google.android.gms.games.multiplayer.Multiplayer;
+//import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatch;
+//import com.google.android.gms.plus.Plus;
+//import com.google.android.gms.drive.Drive;
 
 public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
@@ -101,7 +101,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
 
     // Api options to use when adding each API, null for none
     GamesOptions mGamesApiOptions = null;
-    GamesOptions mPlusApiOptions = null;
+//    GamesOptions mPlusApiOptions = null;
 
     // Google API client object we manage.
     GoogleApiClient mGoogleApiClient = null;
@@ -147,13 +147,13 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
      * If we got an invitation when we connected to the games client, it's here. Otherwise, it's
      * null.
      */
-    Invitation mInvitation;
+//    Invitation mInvitation;
 
     /*
      * If we got turn-based match when we connected to the games client, it's here. Otherwise, it's
      * null.
      */
-    TurnBasedMatch mTurnBasedMatch;
+//    TurnBasedMatch mTurnBasedMatch;
 
     // Listener
     GameHelperListener mListener = null;
@@ -217,10 +217,12 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
     }
 
     /** Sets the options to pass when setting up the Plus API. Call before setup(). */
+
     public void setPlusApiOptions(GamesOptions options) {
-        doApiOptionsPreCheck();
-        mPlusApiOptions = options;
+//        doApiOptionsPreCheck();
+//        mPlusApiOptions = options;
     }
+
 
     /**
      * Creates a GoogleApiClient.Builder for use with @link{#setup}. Normally, you do not have
@@ -241,7 +243,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
             builder.addApi(Games.API);
             builder.addScope(Games.SCOPE_GAMES);
         }
-
+/*
         if (0 != (mRequestedClients & CLIENT_PLUS)) {
             builder.addApi(Plus.API);
             builder.addScope(Plus.SCOPE_PLUS_LOGIN);
@@ -251,7 +253,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
             builder.addApi(Drive.API);
             builder.addScope(Drive.SCOPE_APPFOLDER);
         }
-
+*/
         mGoogleApiClientBuilder = builder;
         return builder;
     }
@@ -378,12 +380,16 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
      * invitation available. In that case, accept the invitation.
      * @return The id of the invitation, or null if none was received.
      */
+
     public String getInvitationId() {
+      return null;
+/*
         if (!mGoogleApiClient.isConnected()) {
             Log.w(TAG, "Warning: getInvitationId() should only be called when signed in, " +
                 "that is, after getting onSignInSuceeded()");
         }
         return mInvitation == null ? null : mInvitation.getInvitationId();
+*/
     }
 
     /**
@@ -393,6 +399,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
      * invitation available. In that case, accept the invitation.
      * @return The invitation, or null if none was received.
      */
+/*
     public Invitation getInvitation() {
         if (!mGoogleApiClient.isConnected()) {
             Log.w(TAG, "Warning: getInvitation() should only be called when signed in, " +
@@ -415,8 +422,22 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
 
     public void clearTurnBasedMatch() {
         mTurnBasedMatch = null;
+    }*/
+    public boolean hasInvitation() {
+        return false;
     }
 
+    public boolean hasTurnBasedMatch() {
+        return false;
+    }
+
+    public void clearInvitation() {
+        //mInvitation = null;
+    }
+
+    public void clearTurnBasedMatch() {
+        //mTurnBasedMatch = null;
+    }
     /**
      * Returns the tbmp match received through an invitation notification. This
      * should be called from your GameHelperListener's
@@ -424,14 +445,18 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
      * match available.
      * @return The match, or null if none was received.
      */
+/*
     public TurnBasedMatch getTurnBasedMatch() {
+
         if (!mGoogleApiClient.isConnected()) {
             Log.w(TAG, "Warning: getTurnBasedMatch() should only be called when signed in, " +
                     "that is, after getting onSignInSuceeded()");
         }
         return mTurnBasedMatch;
-    }
 
+      return null;
+    }
+*/
     /** Enables debug logging */
     public void enableDebugLog(boolean enabled) {
         mDebugLog = enabled;
@@ -457,10 +482,12 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
 
         // for Plus, "signing out" means clearing the default account and
         // then disconnecting
+/*
         if (0 != (mRequestedClients & CLIENT_PLUS)) {
             debugLog("Clearing default account on PlusClient.");
             Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
         }
+*/
 
         // For the games client, signing out means calling signOut and disconnecting
         if (0 != (mRequestedClients & CLIENT_GAMES)) {
@@ -601,8 +628,8 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         }
         debugLog("Starting connection.");
         mConnecting = true;
-        mInvitation = null;
-        mTurnBasedMatch = null;
+//        mInvitation = null;
+//        mTurnBasedMatch = null;
         mGoogleApiClient.connect();
     }
 
@@ -622,10 +649,12 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
 
     /** Called when we successfully obtain a connection to a client. */
     @Override
+
     public void onConnected(Bundle connectionHint) {
         debugLog("onConnected: connected!");
 
         if (connectionHint != null) {
+/*
             debugLog("onConnected: connection hint provided. Checking for invite.");
             Invitation inv = connectionHint
                     .getParcelable(Multiplayer.EXTRA_INVITATION);
@@ -638,6 +667,7 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
 
             debugLog("onConnected: connection hint provided. Checking for TBMP game.");
             mTurnBasedMatch = connectionHint.getParcelable(Multiplayer.EXTRA_TURN_BASED_MATCH);
+*/
         }
 
         // we're good to go

@@ -20,6 +20,7 @@ class GooglePlayGames {
 
 	private static var javaInit(default,null) : Bool->GooglePlayGames->Void = function(enableCloudStorage:Bool, callbackObject:GooglePlayGames):Void{}
 	public static var login(default,null) : Void->Void = function():Void{}
+	public static var loggedIn(default,null) : Void->Bool = function():Bool{return false;}
 
 	//////////////////////////////////////////////////////////////////////
 	///////////// PLAYER INFO
@@ -42,18 +43,20 @@ class GooglePlayGames {
 	///////////// LEADERBOARDS
 	//////////////////////////////////////////////////////////////////////
 
-	public static var displayScoreboard(default,null) : String->Bool = function(id:String):Bool{return false;}
-	public static var displayAllScoreboards(default,null) : Void->Bool = function():Bool{return false;}
+	// public static var displayScoreboard(default,null) : String->Bool = function(id:String):Bool{return false;}
+	public static var displayScoreboard(default,null) : String->Bool = function(id: String): Bool {return false;}
 	public static var getPlayerScore(default,null) : String->Bool = function(id:String):Bool{return false;}
-	private static var javaSetScore(default,null) : String->Int->Int->Bool = function(id:String,high_score:Int, low_score:Int):Bool{return false;}
+	private static var javaSetScore(default,null) : String->Int->Bool = function(id:String,score:Int):Bool{return false;}
 
-	public static function setScore(id:String, score:Int):Bool {
-		return javaSetScore(id, 0, score);
+	public static function setScore(id:String, score:Int): Bool {
+		trace("GooglePlayGames: setScore "+score+" for "+id);
+		return javaSetScore(id, score);
 	}
 
+	/*
 	public static function setScore64(id:String, score:Int64):Bool {
 		return javaSetScore(id, score.high, score.low);
-	}
+	}*/
 
 	//////////////////////////////////////////////////////////////////////
 	///////////// ACHIEVEMENTS
@@ -78,45 +81,51 @@ class GooglePlayGames {
 	///////////// HAXE IMPLEMENTATIONS
 	//////////////////////////////////////////////////////////////////////
 
-	public static function init(enableCloudStorage:Bool){
+	public static function init(enableCloudStorage:Bool) {
 		#if android
 			if(initted){
-				trace("GooglePlayGames: WONT INIT TWICE!");
+				trace("GooglePlayGames: WON'T INIT TWICE!");
 				return;
 			}
 			initted=true;
 
 			try {
 				// LINK JNI METHODS
-				javaInit = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "init", "(ZLorg/haxe/lime/HaxeObject;)V");
-				login = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "login", "()V");
-				displaySavedGames = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "displaySavedGames", "(Ljava/lang/String;ZZI)V");
-				discardAndCloseGame = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "discardAndCloseGame", "()Z");
-				commitAndCloseGame = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "commitAndCloseGame", "(Ljava/lang/String;Ljava/lang/String;)Z");
-				loadSavedGame = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "loadSavedGame", "(Ljava/lang/String;)V");
-				displayScoreboard = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "displayScoreboard", "(Ljava/lang/String;)Z");
+				javaInit =              JNI.createStaticMethod("com/gpgex/GooglePlayGames", "init", "(ZLorg/haxe/lime/HaxeObject;)V");
+				login =                 JNI.createStaticMethod("com/gpgex/GooglePlayGames", "login", "()V");
+				loggedIn =							JNI.createStaticMethod("com/gpgex/GooglePlayGames", "isLoggedIn", "()Z");
+/*
+				displaySavedGames =     JNI.createStaticMethod("com/gpgex/GooglePlayGames", "displaySavedGames", "(Ljava/lang/String;ZZI)V");
+				discardAndCloseGame =   JNI.createStaticMethod("com/gpgex/GooglePlayGames", "discardAndCloseGame", "()Z");
+				commitAndCloseGame =    JNI.createStaticMethod("com/gpgex/GooglePlayGames", "commitAndCloseGame", "(Ljava/lang/String;Ljava/lang/String;)Z");
+				loadSavedGame =         JNI.createStaticMethod("com/gpgex/GooglePlayGames", "loadSavedGame", "(Ljava/lang/String;)V");
+				displayScoreboard =     JNI.createStaticMethod("com/gpgex/GooglePlayGames", "displayScoreboard", "(Ljava/lang/String;)Z");
 				displayAllScoreboards = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "displayAllScoreboards", "()Z");
-				javaSetScore = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "setScore", "(Ljava/lang/String;II)Z");
-				displayAchievements = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "displayAchievements", "()Z");
-				unlock = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "unlock", "(Ljava/lang/String;)Z");
-				increment = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "increment", "(Ljava/lang/String;I)Z");
-				reveal = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "reveal", "(Ljava/lang/String;)Z");
-				setSteps = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "setSteps", "(Ljava/lang/String;I)Z");
-				getPlayerScore = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "getPlayerScore", "(Ljava/lang/String;)Z");
-				getAchievementStatus = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "getAchievementStatus", "(Ljava/lang/String;)Z");
+*/
+				unlock =                JNI.createStaticMethod("com/gpgex/GooglePlayGames", "unlock", "(Ljava/lang/String;)Z");
+				displayScoreboard =     JNI.createStaticMethod("com/gpgex/GooglePlayGames", "displayScoreboard", "(Ljava/lang/String;)Z");
+				javaSetScore =          JNI.createStaticMethod("com/gpgex/GooglePlayGames", "setScore", "(Ljava/lang/String;I)Z");
+				displayAchievements =   JNI.createStaticMethod("com/gpgex/GooglePlayGames", "displayAchievements", "()Z");
+/*
+				increment =             JNI.createStaticMethod("com/gpgex/GooglePlayGames", "increment", "(Ljava/lang/String;I)Z");
+				reveal =                JNI.createStaticMethod("com/gpgex/GooglePlayGames", "reveal", "(Ljava/lang/String;)Z");
+				setSteps =              JNI.createStaticMethod("com/gpgex/GooglePlayGames", "setSteps", "(Ljava/lang/String;I)Z");
+				getPlayerScore =        JNI.createStaticMethod("com/gpgex/GooglePlayGames", "getPlayerScore", "(Ljava/lang/String;)Z");
+				getAchievementStatus =  JNI.createStaticMethod("com/gpgex/GooglePlayGames", "getAchievementStatus", "(Ljava/lang/String;)Z");
 				getCurrentAchievementSteps = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "getCurrentAchievementSteps", "(Ljava/lang/String;)Z");
-				getPlayerId = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "getPlayerId", "()Ljava/lang/String;");
-				getPlayerDisplayName = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "getPlayerDisplayName", "()Ljava/lang/String;");
-				getPlayerImage = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "getPlayerImage", "(Ljava/lang/String;)V");
-				loadInvitablePlayers = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "loadInvitablePlayers", "(Z)Z");
-				loadConnectedPlayers = JNI.createStaticMethod("com/gpgex/GooglePlayGames", "loadConnectedPlayers", "(Z)Z");
+				getPlayerId =           JNI.createStaticMethod("com/gpgex/GooglePlayGames", "getPlayerId", "()Ljava/lang/String;");
+				getPlayerDisplayName =  JNI.createStaticMethod("com/gpgex/GooglePlayGames", "getPlayerDisplayName", "()Ljava/lang/String;");
+				getPlayerImage =        JNI.createStaticMethod("com/gpgex/GooglePlayGames", "getPlayerImage", "(Ljava/lang/String;)V");
+				loadInvitablePlayers =  JNI.createStaticMethod("com/gpgex/GooglePlayGames", "loadInvitablePlayers", "(Z)Z");
+				loadConnectedPlayers =  JNI.createStaticMethod("com/gpgex/GooglePlayGames", "loadConnectedPlayers", "(Z)Z");
+*/
 
 			} catch(e:Dynamic) {
 				trace("GooglePlayGames linkMethods Exception: "+e);
 			}
 
-			javaInit(enableCloudStorage,getInstance());
-			openfl.Lib.current.stage.addEventListener(flash.events.Event.RESIZE,function(_){javaInit(enableCloudStorage,getInstance());});
+			javaInit(enableCloudStorage, getInstance());
+			//openfl.Lib.current.stage.addEventListener(flash.events.Event.RESIZE,function(_){javaInit(enableCloudStorage,getInstance());});
 		#end
 	}
 

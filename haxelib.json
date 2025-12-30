@@ -5,10 +5,6 @@
 	"contributors":["fbricker"],
 	"tags": ["social","api","google-play-games","gpg","googleplaygames","games","openfl"],
 	"description": "OpenFL Google Play Games extension for Android.",
-	"dependencies": {
-		"extension-googleplayservices-basement": "",
-		"extension-android-support-v4": ""
-	},
 	"version": "1.5.7",
 	"releasenote": "Fixes in init and image loading."
 }

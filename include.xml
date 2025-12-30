@@ -1,21 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<extension>
+<extension xmlns="http://lime.openfl.org/project/1.0.4"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://lime.openfl.org/project/1.0.4 http://lime.openfl.org/xsd/project-1.0.4.xsd">
+
 	<section if="android">
-		<section unless="openfl-legacy || openfl-next">
-			<echo value="ALERT: Setting GoolePlayServices to the last version on your SDK. Please read how to upgrade and choose your version here: https://github.com/player-03/google-play-services" unless="playServicesVersion" />
-			<set name="playServicesVersion" value="+" unless="playServicesVersion" />
-		</section>
-		
-		<section if="openfl-legacy || openfl-next">
-			<set name="google-play-services-basement" />
-			<set name="google-play-services-games" />
-			<set name="google-play-services-base" />
-			<set name="google-play-services-plus" />
-			<set name="google-play-services-drive" />
-			<haxelib name="extension-googleplayservices-basement" />
-			<haxelib name="extension-android-support-v4" />
-		</section>
-		
 		<dependency name="gpgex" path="dependencies/gpgex" /> 
+		<config:android extension="com.gpgex.GooglePlayGames" />
 	</section>
+
 </extension>

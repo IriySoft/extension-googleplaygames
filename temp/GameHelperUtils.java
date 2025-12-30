@@ -42,8 +42,8 @@ class GameHelperUtils {
                 return "RESULT_CANCELED";
             case GamesActivityResultCodes.RESULT_APP_MISCONFIGURED:
                 return "RESULT_APP_MISCONFIGURED";
-            case GamesActivityResultCodes.RESULT_LEFT_ROOM:
-                return "RESULT_LEFT_ROOM";
+//            case GamesActivityResultCodes.RESULT_LEFT_ROOM:
+//                return "RESULT_LEFT_ROOM";
             case GamesActivityResultCodes.RESULT_LICENSE_FAILED:
                 return "RESULT_LICENSE_FAILED";
             case GamesActivityResultCodes.RESULT_RECONNECT_REQUIRED:
@@ -122,6 +122,7 @@ class GameHelperUtils {
             Resources res = ctx.getResources();
             String pkgName = ctx.getPackageName();
             int res_id = res.getIdentifier("app_id", "string", pkgName);
+            Log.w("GameHelper",res.getString(res_id));
             return res.getString(res_id);
         } catch (Exception ex) {
             ex.printStackTrace();

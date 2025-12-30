@@ -1,31 +1,29 @@
 buildscript {
-	repositories {
-		maven {
-			url "https://repo1.maven.org/maven2/"
-		}
-	}
-	dependencies {
-		classpath 'com.android.tools.build:gradle:2.1.0'
-	}
+  repositories {
+    google()
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath 'com.android.tools.build:gradle:::ANDROID_GRADLE_PLUGIN::'
+    //classpath 'androidx.fragment:fragment:1.1.0'
+  }
 }
 
 apply plugin: 'com.android.library'
 
 android {
-	sourceSets {
-		main {
-			manifest.srcFile 'AndroidManifest.xml'
-			java.srcDirs = ['src']
-			res.srcDirs = ['res']
-		}
-	}
+	namespace 'com.gpgex'
 	compileSdkVersion Integer.parseInt(project.ANDROID_BUILD_SDK_VERSION)
 	buildToolsVersion project.ANDROID_BUILD_TOOLS_VERSION
 }
 
 dependencies {
-	api project(':deps:extension-api')
-	implementation 'com.google.android.gms:play-services-plus:::SET_PLAY_SERVICES_VERSION::'
-	implementation 'com.google.android.gms:play-services-games:::SET_PLAY_SERVICES_VERSION::'
-	implementation 'com.google.android.gms:play-services-drive:::SET_PLAY_SERVICES_VERSION::'
+  api project(':deps:extension-api')
+  implementation "com.google.android.gms:play-services-games-v2:+"
+//  implementation 'com.google.android.gms:play-services-games:23.1.0'
+//  implementation 'com.google.android.gms:play-services-base:18.1.0'
+//  implementation 'com.google.android.gms:play-services-tasks:18.1.0'
+//  implementation 'androidx.fragment:fragment:1.1.0'
+//  implementation 'com.google.android.gms:play-services-auth:20.3.0'
 }
