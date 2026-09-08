@@ -94,8 +94,9 @@ class GooglePlayGames {
 				javaInit =              JNI.createStaticMethod("com/gpgex/GooglePlayGames", "init", "(ZLorg/haxe/lime/HaxeObject;)V");
 				login =                 JNI.createStaticMethod("com/gpgex/GooglePlayGames", "login", "()V");
 				loggedIn =							JNI.createStaticMethod("com/gpgex/GooglePlayGames", "isLoggedIn", "()Z");
-/*
+
 				displaySavedGames =     JNI.createStaticMethod("com/gpgex/GooglePlayGames", "displaySavedGames", "(Ljava/lang/String;ZZI)V");
+				/*
 				discardAndCloseGame =   JNI.createStaticMethod("com/gpgex/GooglePlayGames", "discardAndCloseGame", "()Z");
 				commitAndCloseGame =    JNI.createStaticMethod("com/gpgex/GooglePlayGames", "commitAndCloseGame", "(Ljava/lang/String;Ljava/lang/String;)Z");
 				loadSavedGame =         JNI.createStaticMethod("com/gpgex/GooglePlayGames", "loadSavedGame", "(Ljava/lang/String;)V");
