@@ -671,7 +671,7 @@ public class GooglePlayGames extends Extension /*implements GameHelper.GameHelpe
 	private static final int RC_SAVED_GAMES = 9009;
 
   public static void displaySavedGames(String title, boolean allowAddButton, boolean allowDelete, int maxNumberOfSavedGamesToShow) {
-    Log.i(TAG, "displaySavedGames " + title + " (authenticated: " + isAuthenticated);
+    Log.i(TAG, "displaySavedGames " + title + " (authenticated): " + isAuthenticated);
     if (!isAuthenticated) {
       login();
       // return false;
